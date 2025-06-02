@@ -15,8 +15,9 @@ RIGHT_ECHO_PIN = 27   # GPIO 27 (Pin 13)
 THRESHOLD_CM = 50
 
 # Paths to directional audio files (stereo WAVs)
-LEFT_SOUND_PATH  = '/home/ubuntu/obstacle_alert/sounds/caution_left.wav'
-RIGHT_SOUND_PATH = '/home/ubuntu/obstacle_alert/sounds/caution_right.wav'
+LEFT_SOUND_PATH  = '/home/varun/visionassistant/model_data/sound/caution_left.wav'
+RIGHT_SOUND_PATH = '/home/varun/visionassistant/model_data/sound/caution_right.wav'
+MONO_SOUND_PATH  = '/home/varun/visionassistant/model_data/sound/caution_mono.wav'  # Added mono sound
 
 # Minimum interval between successive warnings (seconds)
 COOLDOWN_SECONDS = 1.2
@@ -78,15 +79,16 @@ def measure_distance(trig_pin, echo_pin):
 
 def init_audio():
     pygame.mixer.init()
-    # Preload sounds
+    # Preload sounds including mono
     left_sound  = pygame.mixer.Sound(LEFT_SOUND_PATH)
     right_sound = pygame.mixer.Sound(RIGHT_SOUND_PATH)
-    return left_sound, right_sound
+    mono_sound  = pygame.mixer.Sound(MONO_SOUND_PATH)  # Load mono sound
+    return left_sound, right_sound, mono_sound
 
 def main():
     try:
         init_gpio()
-        left_sound, right_sound = init_audio()
+        left_sound, right_sound, mono_sound = init_audio()  # Updated to include mono
         last_warning_time = 0
 
         print("Obstacle detection running. Threshold: {} cm".format(THRESHOLD_CM))
@@ -98,16 +100,22 @@ def main():
             now = time.time()
             # If enough time has passed since last warning
             if now - last_warning_time >= COOLDOWN_SECONDS:
-                # Check LEFT sensor first
-                if dist_left is not None and dist_left <= THRESHOLD_CM:
-                    print(f"[{time.strftime('%H:%M:%S')}] Obstacle detected on LEFT: {dist_left:.1f} cm")
-                    left_sound.play()
-                    last_warning_time = now
-                # Else check RIGHT sensor
-                elif dist_right is not None and dist_right <= THRESHOLD_CM:
-                    print(f"[{time.strftime('%H:%M:%S')}] Obstacle detected on RIGHT: {dist_right:.1f} cm")
-                    right_sound.play()
-                    last_warning_time = now
+                # Check if both sensors detect obstacles
+                if dist_left is not None and dist_right is not None:
+                    if dist_left <= THRESHOLD_CM and dist_right <= THRESHOLD_CM:
+                        print(f"[{time.strftime('%H:%M:%S')}] Obstacle detected on BOTH sides: Left {dist_left:.1f} cm | Right {dist_right:.1f} cm")
+                        mono_sound.play()
+                        last_warning_time = now
+                    # Check LEFT sensor
+                    elif dist_left <= THRESHOLD_CM:
+                        print(f"[{time.strftime('%H:%M:%S')}] Obstacle detected on LEFT: {dist_left:.1f} cm")
+                        left_sound.play()
+                        last_warning_time = now
+                    # Check RIGHT sensor
+                    elif dist_right <= THRESHOLD_CM:
+                        print(f"[{time.strftime('%H:%M:%S')}] Obstacle detected on RIGHT: {dist_right:.1f} cm")
+                        right_sound.play()
+                        last_warning_time = now
 
             # Optional: print distances for debugging every second
             print(f"  Left:  {dist_left if dist_left else '-'} cm | Right: {dist_right if dist_right else '–'} cm", end="\r")
