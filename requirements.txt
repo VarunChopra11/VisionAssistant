@@ -2,3 +2,4 @@ numpy==1.26.4            # For numerical operations
 opencv-python==4.10.0.84   # For OpenCV's computer vision functions
 pygame==2.6.0             # For audio playback
 requests==2.31.0          # For handling HTTP requests
+python-dotenv
