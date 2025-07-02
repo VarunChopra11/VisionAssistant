@@ -1,5 +1,9 @@
-numpy==1.24.4           # For numerical operations
-opencv-python-headless==4.5.5.64   # For OpenCV's computer vision functions
-pygame==2.6.0             # For audio playback
-requests==2.31.0          # For handling HTTP requests
+numpy==1.24.4
+pygame==2.6.0            
+requests==2.31.0         
 python-dotenv
+
+google-genai>=0.5.1
+pyaudio>=0.2.13
+pillow>=10.2.0
+mss>=9.0.1
